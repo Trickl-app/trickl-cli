@@ -47,6 +47,44 @@ export async function setup() {
 
   log.info('Proceeding with local Docker deployment.');
 
+  log.step('Configuration...');
+  const { openaiKey, openaiModel } = await inquirer.prompt([
+    {
+      type: 'password',
+      name: 'openaiKey',
+      message: 'OpenAI API key:',
+      mask: '*',
+      validate: (v) => v.trim().length > 0 || 'Required.',
+    },
+    {
+      type: 'input',
+      name: 'openaiModel',
+      message: 'OpenAI model:',
+      default: 'gpt-4o',
+    },
+  ]);
+
+  const { configureAws } = await inquirer.prompt([
+    {
+      type: 'confirm',
+      name: 'configureAws',
+      message: 'Configure AWS S3 for long-term metric storage? (skip to run without it)',
+      default: false,
+    },
+  ]);
+
+  let awsVars = {};
+  if (configureAws) {
+    awsVars = await inquirer.prompt([
+      { type: 'input', name: 'AWS_ACCESS_KEY_ID', message: 'AWS Access Key ID:' },
+      { type: 'password', name: 'AWS_SECRET_ACCESS_KEY', message: 'AWS Secret Access Key:', mask: '*' },
+      { type: 'input', name: 'AWS_REGION', message: 'AWS Region:', default: 'us-east-1' },
+      { type: 'input', name: 'AWS_S3_BUCKET_NAME', message: 'S3 Bucket Name:' },
+    ]);
+  } else {
+    log.warn('Skipping AWS S3 — Vector will not send raw metrics to long-term storage.');
+  }
+
   if (!fs.existsSync(resolvedParent)) {
     fs.mkdirSync(resolvedParent, { recursive: true });
     log.info(`Created ${resolvedParent}`);
@@ -55,6 +93,28 @@ export async function setup() {
   // Clone
   log.step('Cloning repos...');
   await cloneRepos(resolvedParent);
+
+  // Write root .env for docker-compose
+  const rootEnvLines = [
+    `OPENAI_API_KEY=${openaiKey}`,
+    `OPENAI_MODEL=${openaiModel}`,
+    `SMART_METRICS_INTERNAL_URL=http://smart-metrics:3001`,
+    `AWS_ACCESS_KEY_ID=${awsVars.AWS_ACCESS_KEY_ID ?? ''}`,
+    `AWS_SECRET_ACCESS_KEY=${awsVars.AWS_SECRET_ACCESS_KEY ?? ''}`,
+    `AWS_REGION=${awsVars.AWS_REGION ?? ''}`,
+    `S3_BUCKET_NAME=${awsVars.AWS_S3_BUCKET_NAME ?? ''}`,
+  ];
+  fs.writeFileSync(
+    path.join(resolvedParent, 'local_host_pipeline', '.env'),
+    rootEnvLines.join('\n') + '\n'
+  );
+
+  // Write smart_metrics/.env
+  fs.writeFileSync(
+    path.join(resolvedParent, 'local_host_pipeline', 'smart_metrics', '.env'),
+    'VMSELECT_ENDPOINT=http://localhost:8481/select/0/prometheus/api/v1\n'
+  );
+  log.info('Created .env files');
 
   // Initialise required vmagent config files that are not tracked in the repo
   const vmagentDir = path.join(resolvedParent, 'local_host_pipeline', 'vmagent');
