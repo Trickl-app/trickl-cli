@@ -28,6 +28,25 @@ export async function setup() {
 
   const resolvedParent = path.resolve(expandHome(parentDir.trim()));
 
+  const { deploymentType } = await inquirer.prompt([
+    {
+      type: 'list',
+      name: 'deploymentType',
+      message: 'Deployment type:',
+      choices: [
+        { name: 'Local (Docker)', value: 'local' },
+        { name: 'Cloud', value: 'cloud' },
+      ],
+    },
+  ]);
+
+  if (deploymentType === 'cloud') {
+    log.info('Cloud deployment coming soon.');
+    process.exit(0);
+  }
+
+  log.info('Proceeding with local Docker deployment.');
+
   if (!fs.existsSync(resolvedParent)) {
     fs.mkdirSync(resolvedParent, { recursive: true });
     log.info(`Created ${resolvedParent}`);
