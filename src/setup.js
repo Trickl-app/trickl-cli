@@ -56,6 +56,12 @@ export async function setup() {
   log.step('Cloning repos...');
   await cloneRepos(resolvedParent);
 
+  // Initialise required vmagent config files that are not tracked in the repo
+  const vmagentDir = path.join(resolvedParent, 'local_host_pipeline', 'vmagent');
+  fs.writeFileSync(path.join(vmagentDir, 'aggregations.yml'), '[]\n');
+  fs.writeFileSync(path.join(vmagentDir, 'relabel.yml'), '[]\n');
+  log.info('Created vmagent/aggregations.yml and relabel.yml');
+
   // npm install for pipeline and grafana plugin only
   log.step('Installing dependencies...');
   for (const name of ['local_host_pipeline', 'grafana_custom_plugin']) {
@@ -63,6 +69,12 @@ export async function setup() {
       cwd: path.join(resolvedParent, name),
     });
   }
+
+  // Ensure the cp destination exists before the build script runs
+  fs.mkdirSync(
+    path.join(resolvedParent, 'local_host_pipeline', 'grafana', 'plugin-dist', 'trickl-trickl-app'),
+    { recursive: true }
+  );
 
   // Build grafana plugin — build script copies dist to ../local_host_pipeline/grafana/plugin-dist/trickl-trickl-app
   log.step('Building Grafana plugin...');
