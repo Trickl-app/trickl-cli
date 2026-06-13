@@ -4,17 +4,17 @@ const REPOS = [
   {
     name: 'local_host_pipeline',
     url: 'https://github.com/Trickl-app/local_host_pipeline',
-    branch: 'bugFixing',
+    branch: 'main',
   },
   {
     name: 'grafana_custom_plugin',
     url: 'https://github.com/Trickl-app/grafana_custom_plugin',
-    branch: 'bugFixing',
+    branch: 'main',
   },
   {
     name: 'infrastructure',
     url: 'https://github.com/Trickl-app/infrastructure',
-    branch: 'vectorEntry',
+    branch: 'main',
   },
 ];
 
