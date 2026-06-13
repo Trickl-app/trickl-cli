@@ -6,6 +6,7 @@ import { runPreflight } from './checks.js';
 import { cloneRepos } from './git.js';
 import { run, runStreamed } from './runner.js';
 import { log } from './logger.js';
+import { cloudSetup } from './cloud.js';
 
 function expandHome(p) {
   return p.startsWith('~') ? path.join(os.homedir(), p.slice(1)) : p;
@@ -41,8 +42,8 @@ export async function setup() {
   ]);
 
   if (deploymentType === 'cloud') {
-    log.info('Cloud deployment coming soon.');
-    process.exit(0);
+    await cloudSetup(resolvedParent);
+    return;
   }
 
   log.info('Proceeding with local Docker deployment.');

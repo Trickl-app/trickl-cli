@@ -32,12 +32,35 @@ export async function runPreflight() {
     checkBinary('docker', 'Install it from https://docs.docker.com/get-docker/'),
   ]);
 
-  const allBinariesOk = results.every(Boolean);
-  if (!allBinariesOk) return false;
+  if (!results.every(Boolean)) return false;
 
   const dockerRunning = await checkDockerRunning();
   if (!dockerRunning) return false;
 
   log.success('All dependencies found.');
   return true;
+}
+
+export async function runCloudPreflight() {
+  log.step('Checking cloud dependencies...');
+
+  const awsOk = await checkBinary('aws', 'Install it from https://aws.amazon.com/cli/');
+  if (!awsOk) return null;
+
+  // Validate credentials and fetch account info in one call
+  let identity;
+  try {
+    const result = await execa('aws', ['sts', 'get-caller-identity', '--output', 'json']);
+    identity = JSON.parse(result.stdout);
+  } catch {
+    log.error('AWS credentials are not configured or are invalid. Run: aws configure');
+    return null;
+  }
+
+  // Docker must be running — CDK builds Docker images during deploy
+  const dockerRunning = await checkDockerRunning();
+  if (!dockerRunning) return null;
+
+  log.success(`AWS credentials valid. Account: ${identity.Account}`);
+  return { accountId: identity.Account };
 }
