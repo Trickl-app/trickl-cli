@@ -60,5 +60,12 @@ export async function setup() {
     { cwd: path.join(resolvedParent, 'local_host_pipeline') }
   );
 
-  log.success('Setup complete. Local pipeline is running.');
+  log.success('Setup complete. Local pipeline is running.\n');
+  console.log('  Send metrics to Vector:');
+  console.log('    HTTP (OTLP)  →  http://localhost:9090');
+  console.log('    gRPC (OTLP)  →  localhost:4317');
+  console.log('');
+  console.log('  Query data in Grafana:');
+  console.log('    http://localhost:3000  (admin / admin)');
+  console.log('');
 }
