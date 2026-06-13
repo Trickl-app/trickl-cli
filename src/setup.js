@@ -7,12 +7,14 @@ import { cloneRepos } from './git.js';
 import { run, runStreamed } from './runner.js';
 import { log } from './logger.js';
 import { cloudSetup } from './cloud.js';
+import { printBanner } from './banner.js';
 
 function expandHome(p) {
   return p.startsWith('~') ? path.join(os.homedir(), p.slice(1)) : p;
 }
 
 export async function setup() {
+  printBanner();
   const ok = await runPreflight();
   if (!ok) process.exit(1);
 
