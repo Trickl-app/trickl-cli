@@ -162,4 +162,6 @@ export async function setup() {
   console.log('  Query data in Grafana:');
   console.log('    http://localhost:3000  (admin / admin)');
   console.log('');
+
+  printBanner();
 }
