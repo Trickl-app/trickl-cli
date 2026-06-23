@@ -69,5 +69,5 @@ After deploy, the CLI prints the ALB DNS name for your CNAME record, your Vector
 
 ## Notes
 
-- The repos are cloned as siblings inside whatever parent directory you choose — don't move them around after setup or relative paths will break
+- The repos are cloned as siblings inside whatever parent directory you choose; don't move them around after setup or relative paths will break
 - Rerunning the CLI in the same parent directory will fail at the clone step if the repos already exist; just delete them first
